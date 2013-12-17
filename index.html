@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<script type="text/javascript" src="JS-libs/three.min.js"></script>
+	<script type="text/javascript" src="JS-libs/jquery-1.10.2.min.js"></script>
+	<script type="text/javascript">
+		$(document).on("ready", function (e)
+		{
+			var WIDTH = 400,
+			  HEIGHT = 300;
+
+			var VIEW_ANGLE = 45,
+			  ASPECT = WIDTH / HEIGHT,
+			  NEAR = 0.1,
+			  FAR = 10000;
+
+			var $container = $('#container');
+
+			var renderer = new THREE.WebGLRenderer();
+			var camera =
+			  new THREE.PerspectiveCamera(
+				VIEW_ANGLE,
+				ASPECT,
+				NEAR,
+				FAR);
+
+			var scene = new THREE.Scene();
+
+			scene.add(camera);
+
+			camera.position.z = 2.5;
+			camera.position.y = 0.8;
+
+			var directionalLight = new THREE.DirectionalLight(0xffffff);
+			directionalLight.position.set(1, 1, 1).normalize();
+			scene.add(directionalLight);
+			
+			renderer.setSize(WIDTH, HEIGHT);
+
+			$container.append(renderer.domElement);
+			
+			loader = new THREE.JSONLoader();
+			loader.load('animations.js',function jsonReady( geometry )
+			{
+				// ATENTION: the morphTargets property must be set on the material
+				mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial({morphTargets : true}) );
+				scene.add( mesh );
+				
+				var animationDuration = 5;
+				var framesPerSecond = 30;
+				var targetAnimationFrame = 19;
+				
+				var interval = setInterval (function ()
+				{
+					// Animating by interpolation towards frame 19
+					// Obs: frames from 2 to 18 are not used, but could be by changing targetAnimationFrame
+					mesh.morphTargetInfluences[targetAnimationFrame] += 1 / (animationDuration * framesPerSecond);
+					
+					renderer.render(scene, camera);
+					
+					if (mesh.morphTargetInfluences[targetAnimationFrame] >= 1)
+					{
+						clearInterval (interval);
+					}
+					
+				}, 1000 / framesPerSecond);
+				
+				renderer.render(scene, camera);
+			});
+		});
+	</script>
+</head>
+
+<body>
+    <h1>Morph animation example with three.js</h1>
+    <h3>Authors: Fabio Picchi and Leonardo Leite</h3>
+    <h3>License: <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL v3</a></h3>
+	<div id="container" style="width:400px; height:300px;"></div>
+    <h3>Model preparation</h3>
+    <ul>
+        <li>The model was initially made and prepared using MakeHuman.</li>
+        <li>In MakeHuman we exported the model to the collada format.</li>
+        <li>In Blender we imported the collada model.</li>
+        <li>In Blender we created two key frames, one with the initial pose, and another one with a different pose.</li>
+        <li>The pose change was achieved by armature manipulation.</li>
+        <li>These two key frames generate an animation in the frames between them.</li>
+        <li>In Blender we exported the model to the json format (used in three.js).</li>
+        <li>The json model has each animation frame stored in the morphTargets array.</li>
+    </ul>
+</body>
+
+
+
